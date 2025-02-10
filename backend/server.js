@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const vehicleRoutes = require("./routes/vehicleRoutes")
 
 dotenv.config()
 const app = express();
@@ -14,6 +15,8 @@ app.use(cors());
 // use auth routes
 app.use("/api/auth", authRoutes);
 
+// use vehicle routes
+app.use("/api/vehicles", vehicleRoutes);
 app.get("/", (req, res) => {
     res.send("API is running")
 })
