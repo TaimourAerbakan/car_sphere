@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { body, validationResult } = require('express-validator');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -71,6 +72,42 @@ router.post('/login', async (req, res) => {
     });
 
     // TODO: Add JWT token to the response and set a cookie for persistent login
+});
+
+
+// Update Password (Logged-in Users)
+router.put('/update-password', authMiddleware, async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user.id; // Get user ID from token
+
+    if (!oldPassword || !newPassword) {
+        return res.status(400).json({ error: 'Both old and new passwords are required' });
+    }
+
+    try {
+        // Fetch user from database
+        db.query('SELECT password FROM users WHERE id = ?', [userId], async (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (results.length === 0) return res.status(404).json({ error: 'User not found' });
+
+            const storedPassword = results[0].password;
+
+            // Compare old password
+            const isMatch = await bcrypt.compare(oldPassword, storedPassword);
+            if (!isMatch) return res.status(400).json({ error: 'Old password is incorrect' });
+
+            // Hash new password
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            // Update password in database
+            db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId], (err, result) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ message: 'Password updated successfully' });
+            });
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 module.exports = router;
