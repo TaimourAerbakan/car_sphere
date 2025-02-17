@@ -43,8 +43,8 @@ const Vehicle = {
         db.query(sql, values, callback);
     },
 
-    delete: (id, user_id, callback) => {
-        db.query("DELETE FROM vehicles WHERE id =?", [id, user_id], callback)
+    delete: (id, callback) => {
+        db.query("DELETE FROM vehicles WHERE id =?", [id], callback)
     }
 
 }

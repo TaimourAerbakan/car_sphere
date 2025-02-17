@@ -11,6 +11,12 @@ const router = express.Router();
 router.post('/signup', async (req, res) => {
     const { name, email, password, role, city, phone } = req.body;
 
+    // Validate role
+    const validRoles = ['buyer', 'seller', 'admin'];
+    if (role && !validRoles.includes(role)) {
+        return res.status(400).json({ error: "Invalid role" });
+    }
+
     if (!name || !email || !password) {
         return res.status(400).json({ msg: "Please fill all fields" });
     }
@@ -18,6 +24,7 @@ router.post('/signup', async (req, res) => {
     //Check if user already exists
     db.query("SELECT * FROM users WHERE email = ?", [email], async (err, results) => {
         if (results.length > 0) {
+            console.log('results', results)
             return results.status(400).json({ msg: "User already exists" })
         }
 
